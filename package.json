@@ -39,7 +39,8 @@
   "files": [
     "dist/*",
     "src/*",
-    "types/*"
+    "types/*",
+    "web-types.json"
   ],
   "scripts": {
     "dev": "vite",
