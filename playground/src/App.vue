@@ -1,6 +1,38 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useAcl } from '../../src'
+
+const post = ref({
+  id: 100,
+  user_id: 1,
+  title: 'First Post',
+})
+const post2 = ref({
+  id: 101,
+  user_id: 2,
+  title: 'Second Post',
+})
+const comment = ref({
+  id: 101,
+  post_id: 100,
+  user_id: 1,
+  title: 'Post comment',
+})
+const postTitle = ref(post.value.title)
+
+const acl = useAcl()
+
+if (acl.can.not('edit-post', post.value))
+  console.log('User CAN edit post')
+else
+  console.log('User CAN NOT edit post')
+
+console.log(acl.user)
+</script>
+
 <template>
   <h1>Vue Simple ACL (DEMO)</h1>
-  
+
   <div v-permission:create-post>
     #1. USER-1 can create POST
   </div>
@@ -24,66 +56,18 @@
     #6. Post Comment Owner or Post Owner or Admin can hide a comment!
   </button>
   <br>
-  <input v-can:edit-post.disabled="post2" v-model="postTitle" type="text">
+  <input v-model="postTitle" v-can:edit-post.disabled="post2" type="text">
   <br>...
   {{ $acl.user }}
   <div v-if="$acl.role('edit-post', post)">
     #1. HELPER: USER-1 can create POST
-  </div> 
+  </div>
 
   <br>
   <br>
   ====== ROUTER VIEW ======
-  <router-view></router-view>
-
+  <router-view />
 </template>
-<script lang="ts">
-import { defineComponent } from 'vue'
-import { useAcl } from '../../src';
-
-export default defineComponent({
-  name: 'App',
-
-  setup: () => {
-    const post = {
-      id: 100,
-      user_id: 1,
-      title: "First Post"
-    }
-    const post2 = {
-      id: 101,
-      user_id: 2,
-      title: "Second Post"
-    }
-    const comment = {
-      id: 101,
-      post_id: 100,
-      user_id: 1,
-      title: "Post commment"
-    }
-    const postTitle = post.title;
-
-    // Usage in setup() / composition API
-    const acl = useAcl();
-
-    if (acl.can.not('edit-post', post)) {
-      console.log('User CAN edit post');
-    } else {
-      console.log('User CAN NOT edit post');
-    }
-    console.log(acl.user);
-    
-
-
-    return { 
-      post,
-      post2,
-      comment,
-      postTitle
-    }
-  }
-});
-</script>
 
 <style>
 #app {

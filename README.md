@@ -53,7 +53,6 @@ A simple unopinionated Vue plugin for managing user roles and permissions, acces
   - [⭐️ Support](#️-support)
   - [📄 License](#-license)
 
-
 <br>
 
 <a name="features"></a>
@@ -87,7 +86,6 @@ yarn add vue-simple-acl
 #### CDN
 [UNPKG](https://unpkg.com/vue-simple-acl)
 [JSDelivr](https://cdn.jsdelivr.net/npm/vue-simple-acl@latest/dist/vue-simple-acl.js)
-
 
 <a name="usage"></a>
 
@@ -144,7 +142,7 @@ For readability, it is recommend to defined your ACL rules in a separate file.
 // src/acl/index.js  OR  src/acl/index.ts
 
 // Import router if you are using the middleware on Vue Router
-import router from "../router"; 
+import router from "../router";
 // Import store if you are using reactive Store/Pinia/Vuex as User data source
 import store from "../store";
 
@@ -188,7 +186,7 @@ const user3 = () => {
 const rules = () => defineAclRules((setRule) => {
   // setRule('unique-ability', callbackFunction(user, arg1, arg2, ...) { });
   // setRule(['unique-ability-1', 'unique-ability-2'], callbackFunction(user, arg1, arg2, ...) { });
-  
+
   // Define a simple rule for ability with no argument
   setRule('create-post', (user) => user.is_admin || user.is_editor);
   setRule('is-admin', (user) => user.is_admin);
@@ -199,7 +197,7 @@ const rules = () => defineAclRules((setRule) => {
     return user.id === post.user_id || user.is_admin;
   });
   // Define rule for array of multiple abilities that share same arguments and callback function
-  setRule(['publish-post', 'unpublish-post'], (user, post) => user.id === post.user_id);  
+  setRule(['publish-post', 'unpublish-post'], (user, post) => user.id === post.user_id);
   // Define rule for ability with multiple arguments
   setRule('hide-comment', (user, post, comment) => {
     return user.is_admin || user.id === post.user_id || (user.id === comment.user_id && post.id === comment.post_id);
@@ -210,13 +208,12 @@ const rules = () => defineAclRules((setRule) => {
 const simpleAcl = createAcl({
   user, // short for user: user
   rules, // short for rules: rules
-  router, // OPTIONAL, short for router: router 
+  router, // OPTIONAL, short for router: router
   // other optional vue-simple-acl options here... See Vue Simple ACL Options below
 });
 
 export default simpleAcl;
 ```
-
 
 <a name="usage-in-component"></a>
 
@@ -399,7 +396,7 @@ You can also have an async evaluation by providing a callback that returns a pro
   path: 'posts/:postId',
   component: PostEditor,
   meta: {
-    can: (to, from, can) => {        
+    can: (to, from, can) => {
       return axios.get(`/api/posts/${to.params.id}`)
         .then((response) => can('edit-post', response.data));
     },
@@ -413,7 +410,7 @@ or using `any` modifier
   path: 'posts/:postId/publish',
   component: ManagePost,
   meta: {
-    anyCan: (to, from, anyCan) => {        
+    anyCan: (to, from, anyCan) => {
       return axios.get(`/api/posts/${to.params.id}/publish`)
         .then((response) => anyCan(['is-admin', ['edit-post', response.data]]));
     },
@@ -427,7 +424,7 @@ or get the data of the defined ACL user in the evaluations by passing `user` as 
   path: 'posts/:postId/publish',
   component: ManagePost,
   meta: {
-    anyCan: (to, from, anyCan, user) => {        
+    anyCan: (to, from, anyCan, user) => {
       return axios.get(`/api/users/${user.id}/posts/${to.params.id}/publish`)
         .then((response) => anyCan(['is-admin', ['edit-post', response.data]]));
     },
@@ -464,7 +461,6 @@ You can set the onDeniedRoute to the special value `'$from'` which will return t
 | **anyCan** or **canAny**| `string` OR `array` of abilities OR `function` of asynchronous evaluation: <span style="white-space:nowrap;">`(to, from, anyCan, user?)`</span> | None | Equivalent of `$can.any()` and `v-can.any=""` |
 | **onDeniedRoute** | `string` OR `object` of `route()` option | Value of the default option `onDeniedRoute`  | A route to redirect to when `can|notCan|anyCan` evaluation is denied. e.g string path `'/unauthorized'` OR router option `{ path: '/unauthorized' }` OR `{ name: 'unauthorizedPage', replace: true }` OR special value **`'$from'`** which returns back to the request URI |
 
-
 <a name="semantic-alias"></a>
 
 ## Semantic Alias directives and methods
@@ -477,10 +473,9 @@ Vue Simple ACL also provides some directives and methods in different verb as al
 | Role Or Permission | As Directives:<br>`v-role-or-permission="['admin', 'create-post']"`<br> `v-role-or-permission.not="['editor', 'create-post']"`<br> `v-role-or-permission.any="['admin', 'create-post', ['edit-post', post]]"` <br><br> In Component:<br> `$acl.roleOrPermission(['admin', 'create-post'])`<br> `$acl.notRoleOrPermission(['editor', 'create-post'])`<br> `$acl.anyRoleOrPermission(['admin', 'create-post', ['edit-post', post]])` <br><br> In Option API:<br> `this.$acl.roleOrPermission(['admin', 'create-post'])`<br> `this.$acl.notRoleOrPermission(['editor', 'create-post'])`<br> `this.$acl.anyRoleOrPermission(['admin', 'create-post', ['edit-post', post]])` <br><br> In Composition API/`setup()`:<br> `const acl = useAcl();`<br> `acl.roleOrPermission(['admin', 'create-post'])`<br> `acl.notRoleOrPermission(['editor', 'create-post'])`<br> `acl.anyRoleOrPermission(['admin', 'create-post', ['edit-post', post]])` <br><br> In Vue Router `meta` Property:<br> `roleOrPermission: ['admin', 'create-post']`<br> `notRoleOrPermission: ['editor', 'create-post', 'create-category']` <br><br> `anyRoleOrPermission: (to, from, anyRoleOrPermission) => {`<br>&nbsp;&nbsp;`return axios.get(`\``/api/posts/${to.params.id}`\``)`<br>&nbsp;&nbsp;`.then((response) => anyRoleOrPermission(['admin', 'create-post', ['edit-post', response.data]]));`<br>`}` |
 | User | Get the data of the defined ACL user. <br><br> In Component:<br> `$acl.user; // returns user object`<br>`$acl.getUser(); // returns user object` <br><br> In Option API:<br> `this.$acl.user; // returns user object`<br>`this.$acl.getUser(); // returns user object` <br><br> In Composition API/`setup()`:<br> `const acl = useAcl();`<br> `acl.user; // returns user object`<br>`acl.getUser(); // returns user object` <br><br> In Vue Router `meta` Property:<br> _Pass `user` as the fourth argument to the defined ACL meta function_ <br><br> `roleOrPermission: (to, from, roleOrPermission, user) => {`<br>&nbsp;&nbsp;`return axios.get(`\``/api/users/${user.id}/posts/${to.params.id}`\``)`<br>&nbsp;&nbsp;`.then((response) => roleOrPermission(['admin', ['edit-post', response.data]]));`<br>`}` |
 
-
 <a name="options"></a>
 
-## Vue Simple ACL Options 
+## Vue Simple ACL Options
  can be a user OBJECT, FUNCTION returning a user object
 // or an Asynchronous function returning a PROMISE of user object, suitable for performing fetch from API.
 
@@ -493,7 +488,6 @@ Vue Simple ACL also provides some directives and methods in different verb as al
 | **enableSematicAlias** | `boolean` | No | `true` | You can enable or disable the sematic alias directives and methods e.g `v-role`, `v-permission`, `$acl.*`, etc. [See Semantic Alias](#sematic-alias)
 | **router** | `vue-router` | No | None | Inte |
 | **onDeniedRoute** | `string` or `object` | No | `/` | A route to redirect to when `can` evaluation is denied. e.g string path `'/unauthorized'` OR router option `{ path: '/unauthorized' }` OR `{ name: 'unauthorizedPage', replace: true }` OR special value `'$from'` which returns back to the request URI |
-
 
 <a name="todo"></a>
 
@@ -514,13 +508,11 @@ Vue Simple ACL also provides some directives and methods in different verb as al
 6. Push your code to your fork repository.
 7. Create pull request. 🙂
 
-
 <a name="support"></a>
 
 ## ⭐️ Support
 
 If you like this project, You can support me with starring ⭐ this repository, [buy me a coffee](https://www.patreon.com/victoryosayi) or [become a patron](https://www.patreon.com/victoryosayi).
-
 
 <a name="license"></a>
 

@@ -1,4 +1,4 @@
-import './vue';
+import './vue'
 
 export {
   User,
@@ -10,6 +10,4 @@ export {
   createAcl,
   defineAclRules,
   useAcl,
-} from './acl';
-
-
+} from './acl'

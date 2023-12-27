@@ -1,6 +1,6 @@
 // VueSimpleAcl.js
-import { PluginOption } from '../types';
-import { installPlugin, createAcl, defineAclRules, useAcl } from './VueSimpleAcl';
+import type { PluginOption } from '../types'
+import { createAcl, defineAclRules, installPlugin, useAcl } from './VueSimpleAcl'
 
 /**
  * The Plugin
@@ -18,6 +18,6 @@ export {
   createAcl,
   defineAclRules,
   useAcl,
-};
+}
 
-export default VueSimpleAcl;
+export default VueSimpleAcl
