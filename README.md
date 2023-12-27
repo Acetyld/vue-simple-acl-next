@@ -4,23 +4,29 @@ A simple unopinionated Vue plugin for managing user roles and permissions, acces
 
 <div align="center">
 
-  <a href="https://www.npmjs.com/package/vue-simple-acl" target="_blank">
-    <img src="https://img.shields.io/npm/v/vue-simple-acl.svg" alt="Version">
+<a href="https://www.npmjs.com/package/vue-simple-acl-next" target="_blank">
+    <img src="https://img.shields.io/npm/v/vue-simple-acl-next.svg" alt="Version">
   </a>
-  <a href="https://vuejs.org/" target="_blank"><img src="https://badgen.net/badge/Vue/2.x/cyan" alt="Vue 2"></a>
+  <a href="https://github.com/Acetyld/vue-simple-acl-next" target="_blank">
+    <img src="https://img.shields.io/github/stars/Acetyld/vue-simple-acl-next.svg?style=social&label=Star" alt="GitHub Stars">
+  </a>
   <a href="https://v3.vuejs.org/" target="_blank"><img src="https://badgen.net/badge/Vue/3.x/cyan" alt="Vue 3"></a>
-  <a href="https://www.npmjs.com/package/vue-simple-acl" target="_blank">
-    <img alt="NPM Total Downloads" src="https://img.shields.io/npm/dt/vue-simple-acl?color=%2353ca2f">
+  <a href="https://www.npmjs.com/package/vue-simple-acl-next" target="_blank">
+    <img alt="NPM Total Downloads" src="https://img.shields.io/npm/dt/vue-simple-acl-next?color=%2353ca2f">
   </a>
-  <a href="https://www.npmjs.com/package/vue-simple-acl" target="_blank">
-    <img alt="NPM Monthly Downloads" src="https://img.shields.io/npm/dm/vue-simple-acl?color=%2353ca2f">
+  <a href="https://www.npmjs.com/package/vue-simple-acl-next" target="_blank">
+    <img alt="NPM Monthly Downloads" src="https://img.shields.io/npm/dm/vue-simple-acl-next?color=%2353ca2f">
   </a>
-  <a href="https://www.npmjs.com/package/vue-simple-acl" target="_blank">
-    <img alt="NPM bundle size (scoped version)" src="https://img.shields.io/bundlephobia/minzip/vue-simple-acl?color=53ca2f">
+  <a href="https://www.npmjs.com/package/vue-simple-acl-next" target="_blank">
+    <img alt="NPM bundle size (scoped version)" src="https://img.shields.io/bundlephobia/minzip/vue-simple-acl-next?color=53ca2f">
   </a>
   <a href="LICENSE" target="_blank"><img src="https://img.shields.io/npm/l/vue-gates.svg" alt="License"></a>
 
 </div>
+
+## Fork Information
+
+This project is a fork of [vue-simple-acl](https://www.npmjs.com/package/vue-simple-acl), which is no longer maintained. It has been updated and improved for continued support and compatibility.
 
 ## Table of Contents
 - [Vue Simple ACL](#vue-simple-acl)
@@ -77,15 +83,15 @@ A simple unopinionated Vue plugin for managing user roles and permissions, acces
 ## Installation
 #### NPM
 ```
-npm install vue-simple-acl
+npm install vue-simple-acl-next
 ```
 #### Yarn
 ```
-yarn add vue-simple-acl
+yarn add vue-simple-acl-next
 ```
 #### CDN
-[UNPKG](https://unpkg.com/vue-simple-acl)
-[JSDelivr](https://cdn.jsdelivr.net/npm/vue-simple-acl@latest/dist/vue-simple-acl.js)
+[UNPKG](https://unpkg.com/vue-simple-acl-next)
+[JSDelivr](https://cdn.jsdelivr.net/npm/vue-simple-acl-next@latest/dist/vue-simple-acl-next.js)
 
 <a name="usage"></a>
 
@@ -106,35 +112,10 @@ import acl from './acl'; // import the instance of the defined ACL
 const app = createApp(App);
 app.use(router);
 app.use(store);
-app.use(acl); // install vue-simple-acl
+app.use(acl); // install vue-simple-acl-next
 app.mount("#app");
 ```
 
-<a name="usage-vue2"></a>
-
-### Usage with Vue 2
-In Vue 2, when using User data from reactive Store/Pinia/Vuex wrapped with `computed()` function, which is available in Vue 3 as module by default but not in Vue 2, make sure to install [@vue/composition-api](https://github.com/vuejs/composition-api#npm) first and change the imported module to: `import { computed } from '@vue/composition-api'`
-```javascript
-// src/main.js  OR  src/main.ts
-
-import Vue from 'vue'
-import App from './App.vue'
-import router from './router';
-import store from './store';
-import acl from './acl'; // import the instance of the defined ACL
-
-Vue.config.productionTip = false;
-
-Vue.use(acl); // install vue-simple-acl
-
-new Vue({
-  router,
-  store,
-  render: h => h(App),
-}).$mount('#app')
-```
-
-<a name="acl-file"></a>
 
 ### ACL Rules File
 For readability, it is recommend to defined your ACL rules in a separate file.
@@ -148,14 +129,14 @@ import store from "../store";
 
 // ----- VUE 3 Imports -----
 import { computed } from 'vue'; // For VUE 3
-import { createAcl, defineAclRules } from 'vue-simple-acl';
+import { createAcl, defineAclRules } from 'vue-simple-acl-next';
 
 // ----- VUE 2 Imports -----
 import Vue from 'vue';
 import VueCompositionAPI from '@vue/composition-api'; // Ensure this is installed
 Vue.use(VueCompositionAPI); // VueCompositionAPI must be used as plugin before any function, otherwise see your console if warning/errpr
 import { computed } from '@vue/composition-api'; // import computed function
-import { createAcl, defineAclRules } from 'vue-simple-acl';
+import { createAcl, defineAclRules } from 'vue-simple-acl-next';
 
 // ---------------
 // The Vue Simple ACL option 'user' can be a user OBJECT, FUNCTION returning a user object
@@ -209,7 +190,7 @@ const simpleAcl = createAcl({
   user, // short for user: user
   rules, // short for rules: rules
   router, // OPTIONAL, short for router: router
-  // other optional vue-simple-acl options here... See Vue Simple ACL Options below
+  // other optional vue-simple-acl-next options here... See Vue Simple ACL Options below
 });
 
 export default simpleAcl;
@@ -293,7 +274,7 @@ if (this.$can('edit-post', post)) {
 
 The introduction of `setup` and Vue's [Composition API](https://v3.vuejs.org/guide/composition-api-introduction.html), open up new possibilities but to be able to get the full potential out of Vue Simple ACL, we will need to use composable functions to replace access to this.
 ```javascript
-import { useAcl } from 'vue-simple-acl';
+import { useAcl } from 'vue-simple-acl-next';
 
 export default {
   setup() {
