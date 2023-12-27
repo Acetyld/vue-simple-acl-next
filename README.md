@@ -55,6 +55,7 @@ This project is a fork of [vue-simple-acl](https://www.npmjs.com/package/vue-sim
   - [Semantic Alias directives and methods](#semantic-alias-directives-and-methods)
   - [Vue Simple ACL Options](#vue-simple-acl-options)
   - [TODO](#todo)
+  - [⚙️ IntelliJ/Webstorm](#ide-integration)
   - [🤝 Contributing](#-contributing)
   - [⭐️ Support](#️-support)
   - [📄 License](#-license)
@@ -478,6 +479,23 @@ Vue Simple ACL also provides some directives and methods in different verb as al
 2. A documentation page with vitepress
 
 <a name="contributing"></a>
+
+## IDE Integration
+
+### IntelliJ/WebStorm
+
+For users of IntelliJ IDEA or WebStorm, it's recommended to download the `web-types.json` file to enhance the development experience. This file provides better autocompletion and component documentation support.
+
+To utilize this feature, add the following line to your `package.json`:
+
+```json
+"web-types": "./web-types.json"
+```
+
+This will link the web-types.json file from the vue-simple-acl-next package to your project, enabling improved tooling support.
+
+vbnet
+
 
 ## 🤝 Contributing
 
