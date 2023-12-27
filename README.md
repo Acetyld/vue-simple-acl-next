@@ -106,9 +106,11 @@ yarn add vue-simple-acl-next
 
 import { createApp } from 'vue'
 import App from './App.vue'
-import router from './store';
+import router from './router';
 import store from './store';
 import acl from './acl'; // import the instance of the defined ACL
+//Example for Pinia
+//import {useAuthStore} from "@/stores/auth-user";
 
 const app = createApp(App);
 app.use(router);
@@ -142,6 +144,12 @@ import { createAcl, defineAclRules } from 'vue-simple-acl-next';
 // ---------------
 // The Vue Simple ACL option 'user' can be a user OBJECT, FUNCTION returning a user object
 // or an Asynchronous function returning a PROMISE of user object, suitable for performing fetch from API.
+
+/**
+ For Pinia
+ const authUser = useAuthStore();
+ const user = authUser.getUser // Suppose it has a getUser getter
+ */
 
 // USER EXAMPLE 1: User {OBJECT}
 const user = {

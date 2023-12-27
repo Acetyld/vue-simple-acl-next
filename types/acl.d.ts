@@ -1,4 +1,5 @@
 import type { ComputedRef } from '@vue/reactivity'
+import type { Ref } from 'vue'
 
 // type User with properties and callable/call signature
 export interface User {
@@ -19,7 +20,7 @@ export interface PluginOption<U = User> {
 }
 
 export interface PluginOptionWithDefaults<U = User> {
-  user: U | (() => Promise<U>)
+  user: Ref<U> | U | (() => Promise<U>)
   rules: Function | null
   router: any
   onDeniedRoute: string

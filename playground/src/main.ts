@@ -7,6 +7,8 @@ import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { createAcl, defineAclRules } from '../../src'
 import App from './App.vue'
+import type { User } from './User.ts'
+import { user } from './User.ts'
 
 const Home = () => import('./Home.vue')
 const About = () => import('./About.vue')
@@ -27,6 +29,7 @@ const routes = [
     meta: {
       can: (_o: any, _: any, can: any, user: any) => {
         // console.log(user)
+        console.log(user)
         return can('edit-post', { id: 100, user_id: 2 })
         // return axios.get(`/api/posts/${to.params.id}`)
         //   .then((response) => can('edit-post', response.data));
@@ -43,14 +46,6 @@ const router = createRouter({
 //
 
 // Vue Simple ACL
-const user = {
-  id: 1,
-  name: 'Victory Osayi',
-  is_editor: true,
-  is_admin: false,
-  // you can have role based permission list or access control list possibly from database
-  permissions: ['admin', 'owner', 'moderator', 'create-post', 'edit-post', 'delete-post'],
-}
 
 // const user = () => {
 //   return axios.get('https://jsonplaceholder.typicode.com/users/1')
@@ -58,7 +53,7 @@ const user = {
 // }
 
 function rules() {
-  return defineAclRules<typeof user>((setRule) => {
+  return defineAclRules<User>((setRule) => {
     setRule('create-post', user => user.is_admin || user.is_editor)
     setRule('is-admin', user => user.is_admin)
     setRule('is-editor', user => user.is_editor)

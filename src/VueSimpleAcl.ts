@@ -1,12 +1,12 @@
-import { computed, reactive } from 'vue'
+import { isRef, reactive, ref } from 'vue'
 
 import type { Ability, AbilityArgs, AnyFunction, PluginOption, State, User } from '../types'
 import type { AbilitiesEvaluationProps, Acl, AsyncUser, PluginOptionWithDefaults, RuleSetter } from '../types/acl'
 import { capitalize, getFunctionArgsNames } from './utils'
 
+let user = ref<any>(null)
 // plugin global state
 const state = reactive({
-  registeredUser: {},
   registeredRules: {},
   options: {},
 } as State<unknown>)
@@ -17,14 +17,13 @@ const state = reactive({
  * @return void
  */
 function registerPluginOptions<U = User>(pluginOptions: PluginOptionWithDefaults<U>): void {
-  // Init and set user to state
-  if (hasAsyncUser(pluginOptions.user)) {
-    state.registeredUser = pluginOptions.user()
-  }
-  else {
-    const user: any = pluginOptions.user
-    state.registeredUser = user
-  }
+  if (isRef(pluginOptions.user))
+    user = pluginOptions.user
+  else if (hasAsyncUser(pluginOptions.user))
+    user.value = pluginOptions.user()
+  else
+    user.value = pluginOptions.user
+
   // Run and init the defined rules
   if (pluginOptions.rules && typeof pluginOptions.rules === 'function')
     pluginOptions.rules()
@@ -74,11 +73,11 @@ function evaluateAbilityCallback(abilityCallback: any, ability: Ability, args?: 
   try {
     if (typeof abilityCallback === 'function') {
       if (typeof args === 'object' && !Array.isArray(args))
-        return abilityCallback(state.registeredUser, args)
+        return abilityCallback(user.value, args)
       else if (typeof args === 'object' && Array.isArray(args))
-        return abilityCallback(state.registeredUser, ...args)
+        return abilityCallback(user.value, ...args)
       else
-        return abilityCallback(state.registeredUser)
+        return abilityCallback(user.value)
     }
     return false
   }
@@ -181,7 +180,7 @@ function prepareAcl({ abilities, args, any = false }: AbilitiesEvaluationProps):
       // v-can="'create-post'" OR $can('create-post')
       aclStatus = checkAclAbilities({ abilities: aclArgs })
     }
-    else if (aclArgs && aclArgs !== null && typeof aclArgs === 'object') {
+    else if (aclArgs && typeof aclArgs === 'object') {
       // v-can="['edit-post', post]" OR $can(['edit-post', post])
       const argsCount = (Array.isArray(aclArgs)) ? aclArgs.length : Object.keys(aclArgs).length
       if (argsCount === 2 && typeof aclArgs[0] === 'string' && typeof aclArgs[1] === 'object' && !Array.isArray(aclArgs[1])) {
@@ -287,7 +286,6 @@ function hasAsyncUser<U = User>(user: U | AsyncUser<U>): user is AsyncUser<U> {
  * @return void
  */
 export function installPlugin<U = User>(app: any, options?: PluginOption<U>) {
-  const isVue3 = !!app.config.globalProperties
   const defaultPluginOptions: PluginOptionWithDefaults<U> = {
     user: Object.create(null),
     rules: null,
@@ -300,13 +298,13 @@ export function installPlugin<U = User>(app: any, options?: PluginOption<U>) {
   const pluginOptions: PluginOptionWithDefaults<U> = { ...defaultPluginOptions, ...options }
 
   // Sanitize directive name should the developer specified a custom name
-  if (pluginOptions.directiveName && typeof pluginOptions.directiveName === 'string') {
+  if (pluginOptions.directiveName) {
     if (pluginOptions.directiveName.startsWith('v-'))
       pluginOptions.directiveName = pluginOptions.directiveName.substring(2, pluginOptions.directiveName.length)
   }
 
   // Sanitize helper name should the developer specified a custom name
-  if (pluginOptions.helperName && typeof pluginOptions.helperName === 'string') {
+  if (pluginOptions.helperName) {
     if (pluginOptions.helperName.charAt(0) !== '$')
       pluginOptions.helperName = `$${pluginOptions.helperName}`
   }
@@ -357,108 +355,68 @@ export function installPlugin<U = User>(app: any, options?: PluginOption<U>) {
     }
   }
 
-  const registerDirective = (app: any, name: string, isVue3: boolean) => {
-    if (isVue3) {
-      app.directive(`${name}`, {
-        mounted(el: any, binding: any) {
-          directiveHandler(el, binding)
-        },
-        updated(el: any, binding: any) {
-          directiveHandler(el, binding)
-        },
-      })
-    }
-    else {
-      app.directive(`${name}`, {
-        mounted(el: any, binding: any) {
-          directiveHandler(el, binding)
-        },
-        updated(el: any, binding: any) {
-          directiveHandler(el, binding)
-        },
-      })
-    }
+  const registerDirective = (app: any, name: string) => {
+    app.directive(`${name}`, {
+      mounted(el: any, binding: any) {
+        directiveHandler(el, binding)
+      },
+      updated(el: any, binding: any) {
+        directiveHandler(el, binding)
+      },
+    })
   }
 
-  const registerHelper = (app: any, name: string, isVue3: boolean, isAlias: boolean) => {
+  const registerHelper = (app: any, name: string, isAlias: boolean) => {
     // Add a global '$can' or '$anycustomname' function | app.config.globalProperties.$can
     // Add a global '$can.not' or '$anycustomname.not' function | app.config.globalProperties.$can.not
     // Add a global '$can.any' or '$anycustomname.any' function | app.config.globalProperties.$can.any
     // add a global '$acl.can'  or '$acl.anyCan', etc
-    if (isVue3) { // Vue 3
-      if (isAlias) {
-        if (!app.config.globalProperties.$acl)
-          app.config.globalProperties.$acl = {}
+    if (isAlias) {
+      if (!app.config.globalProperties.$acl)
+        app.config.globalProperties.$acl = {}
 
-        app.config.globalProperties.$acl[name] = (abilities: Ability, args?: AbilityArgs) => canHelperHandler(abilities, args)
-        app.config.globalProperties.$acl[`all${capitalize(name)}`] = (abilities: Ability, args?: AbilityArgs) => canHelperHandler(abilities, args)
-        app.config.globalProperties.$acl[`not${capitalize(name)}`] = (abilities: Ability, args?: AbilityArgs) => notCanHelperHandler(abilities, args)
-        app.config.globalProperties.$acl[`any${capitalize(name)}`] = (abilities: Ability, args?: AbilityArgs) => anyCanHelperHandler(abilities, args)
-      }
-      else {
-        app.config.globalProperties[name] = (abilities: Ability, args?: AbilityArgs) => canHelperHandler(abilities, args)
-        app.config.globalProperties[name].all = (abilities: Ability, args?: AbilityArgs) => canHelperHandler(abilities, args)
-        app.config.globalProperties[name].not = (abilities: Ability, args?: AbilityArgs) => notCanHelperHandler(abilities, args)
-        app.config.globalProperties[name].any = (abilities: Ability, args?: AbilityArgs) => anyCanHelperHandler(abilities, args)
-      }
+      app.config.globalProperties.$acl[name] = (abilities: Ability, args?: AbilityArgs) => canHelperHandler(abilities, args)
+      app.config.globalProperties.$acl[`all${capitalize(name)}`] = (abilities: Ability, args?: AbilityArgs) => canHelperHandler(abilities, args)
+      app.config.globalProperties.$acl[`not${capitalize(name)}`] = (abilities: Ability, args?: AbilityArgs) => notCanHelperHandler(abilities, args)
+      app.config.globalProperties.$acl[`any${capitalize(name)}`] = (abilities: Ability, args?: AbilityArgs) => anyCanHelperHandler(abilities, args)
     }
-    else { // Vue 2
-      if (isAlias) {
-        if (!app.prototype.$acl)
-          app.prototype.$acl = {}
-
-        app.prototype.$acl[name] = (abilities: Ability, args?: AbilityArgs) => canHelperHandler(abilities, args)
-        app.prototype.$acl[`all${capitalize(name)}`] = (abilities: Ability, args?: AbilityArgs) => canHelperHandler(abilities, args)
-        app.prototype.$acl[`not${capitalize(name)}`] = (abilities: Ability, args?: AbilityArgs) => notCanHelperHandler(abilities, args)
-        app.prototype.$acl[`any${capitalize(name)}`] = (abilities: Ability, args?: AbilityArgs) => anyCanHelperHandler(abilities, args)
-      }
-      else {
-        app.prototype[name] = (abilities: Ability, args?: AbilityArgs) => canHelperHandler(abilities, args)
-        app.prototype[name].all = (abilities: Ability, args?: AbilityArgs) => canHelperHandler(abilities, args)
-        app.prototype[name].not = (abilities: Ability, args?: AbilityArgs) => notCanHelperHandler(abilities, args)
-        app.prototype[name].any = (abilities: Ability, args?: AbilityArgs) => anyCanHelperHandler(abilities, args)
-      }
+    else {
+      app.config.globalProperties[name] = (abilities: Ability, args?: AbilityArgs) => canHelperHandler(abilities, args)
+      app.config.globalProperties[name].all = (abilities: Ability, args?: AbilityArgs) => canHelperHandler(abilities, args)
+      app.config.globalProperties[name].not = (abilities: Ability, args?: AbilityArgs) => notCanHelperHandler(abilities, args)
+      app.config.globalProperties[name].any = (abilities: Ability, args?: AbilityArgs) => anyCanHelperHandler(abilities, args)
     }
   }
 
   // DIRECTIVES
-  registerDirective(app, `${pluginOptions.directiveName}`, isVue3)
+  registerDirective(app, `${pluginOptions.directiveName}`)
   // DIRECTIVE Sematic Aliases
   if (pluginOptions.enableSematicAlias) {
-    registerDirective(app, 'permission', isVue3)
-    registerDirective(app, 'permissions', isVue3)
-    registerDirective(app, 'role', isVue3)
-    registerDirective(app, 'roles', isVue3)
-    registerDirective(app, 'role-or-permission', isVue3)
-    registerDirective(app, 'role-or-permissions', isVue3)
+    registerDirective(app, 'permission')
+    registerDirective(app, 'permissions')
+    registerDirective(app, 'role')
+    registerDirective(app, 'roles')
+    registerDirective(app, 'role-or-permission')
+    registerDirective(app, 'role-or-permissions')
   }
 
   // HELPER FUNCTION / METHOD
-  registerHelper(app, `${pluginOptions.helperName}`, isVue3, false)
+  registerHelper(app, `${pluginOptions.helperName}`, false)
   // Helper Sematic Aliases
   if (pluginOptions.enableSematicAlias) {
-    registerHelper(app, 'can', isVue3, true)
-    registerHelper(app, 'permission', isVue3, true)
-    registerHelper(app, 'permissions', isVue3, true)
-    registerHelper(app, 'role', isVue3, true)
-    registerHelper(app, 'roles', isVue3, true)
-    registerHelper(app, 'roleOrPermission', isVue3, true)
-    registerHelper(app, 'roleOrPermissions', isVue3, true)
+    registerHelper(app, 'can', true)
+    registerHelper(app, 'permission', true)
+    registerHelper(app, 'permissions', true)
+    registerHelper(app, 'role', true)
+    registerHelper(app, 'roles', true)
+    registerHelper(app, 'roleOrPermission', true)
+    registerHelper(app, 'roleOrPermissions', true)
     // Add user data to the global variable as property
-    if (isVue3) {
-      if (!app.config.globalProperties.$acl)
-        app.config.globalProperties.$acl = {}
+    if (!app.config.globalProperties.$acl)
+      app.config.globalProperties.$acl = {}
 
-      app.config.globalProperties.$acl.user = computed(() => state.registeredUser).value
-      app.config.globalProperties.$acl.getUser = () => state.registeredUser
-    }
-    else {
-      if (!app.prototype.$acl)
-        app.prototype.$acl = {}
-
-      app.prototype.$acl.user = computed(() => state.registeredUser).value
-      app.prototype.$acl.getUser = () => state.registeredUser
-    }
+    app.config.globalProperties.$acl.user = user
+    app.config.globalProperties.$acl.getUser = () => user.value
   }
 
   // VUE ROUTER MIDDLEWARE EVALUATIONS
@@ -491,7 +449,7 @@ export function installPlugin<U = User>(app: any, options?: PluginOption<U>) {
         if (typeof abilities === 'function') {
           const funcArgs = getFunctionArgsNames(abilities)
           if (Array.isArray(funcArgs) && funcArgs.length === 4)
-            granted = abilities(to, from, canHelperHandler, state.registeredUser)
+            granted = abilities(to, from, canHelperHandler, user.value)
           else
             granted = abilities(to, from, canHelperHandler)
         }
@@ -506,7 +464,7 @@ export function installPlugin<U = User>(app: any, options?: PluginOption<U>) {
         if (typeof abilities === 'function') {
           const funcArgs = getFunctionArgsNames(abilities)
           if (Array.isArray(funcArgs) && funcArgs.length === 4)
-            granted = abilities(to, from, canHelperHandler, state.registeredUser)
+            granted = abilities(to, from, canHelperHandler, user.value)
           else
             granted = abilities(to, from, canHelperHandler)
         }
@@ -521,7 +479,7 @@ export function installPlugin<U = User>(app: any, options?: PluginOption<U>) {
         if (typeof abilities === 'function') {
           const funcArgs = getFunctionArgsNames(abilities)
           if (Array.isArray(funcArgs) && funcArgs.length === 4)
-            granted = abilities(to, from, notCanHelperHandler, state.registeredUser)
+            granted = abilities(to, from, notCanHelperHandler, user.value)
           else
             granted = abilities(to, from, notCanHelperHandler)
         }
@@ -536,7 +494,7 @@ export function installPlugin<U = User>(app: any, options?: PluginOption<U>) {
         if (typeof abilities === 'function') {
           const funcArgs = getFunctionArgsNames(abilities)
           if (Array.isArray(funcArgs) && funcArgs.length === 4)
-            granted = abilities(to, from, anyCanHelperHandler, state.registeredUser)
+            granted = abilities(to, from, anyCanHelperHandler, user.value)
           else
             granted = abilities(to, from, anyCanHelperHandler)
         }
@@ -603,8 +561,8 @@ export function defineAclRules<U = User>(aclRulesCallback: (setter: RuleSetter<U
  */
 export function useAcl<U = User>(): Acl<U> {
   const acl: any = {}
-  acl.user = computed(() => state.registeredUser).value
-  acl.getUser = () => state.registeredUser
+  acl.user = user
+  acl.getUser = () => user.value
   //
   acl.can = canHelperHandler
   acl.can.not = notCanHelperHandler

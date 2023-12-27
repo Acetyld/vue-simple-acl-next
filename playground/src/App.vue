@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { nextTick, ref } from 'vue'
 import { useAcl } from '../../src'
+import { user } from './User.ts'
 
 const post = ref({
   id: 100,
@@ -28,6 +29,19 @@ else
   console.log('User CAN NOT edit post')
 
 console.log(acl.user)
+setTimeout(() => {
+  user.value = {
+    id: 1,
+    name: 'Victory Osayi',
+    is_editor: true,
+    is_admin: false,
+    // you can have role based permission list or access control list possibly from database
+    permissions: ['admin', 'owner', 'moderator', 'create-post', 'edit-post', 'delete-post'],
+  }
+  nextTick(() => {
+    console.log(acl.user)
+  })
+}, 1000)
 </script>
 
 <template>
@@ -58,6 +72,10 @@ console.log(acl.user)
   <br>
   <input v-model="postTitle" v-can:edit-post.disabled="post2" type="text">
   <br>...
+
+  <h2>User from useAcl</h2>
+  {{ acl.user }}
+  <h2>User from $acl</h2>
   {{ $acl.user }}
   <div v-if="$acl.role('edit-post', post)">
     #1. HELPER: USER-1 can create POST
